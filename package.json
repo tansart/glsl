@@ -1,10 +1,11 @@
 {
-  "name": "glsl",
+  "name": "@stilva/glsl",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "rollup -c ./rollup.config.js --watch",
+    "build": "rollup -c ./rollup.config.js --compact"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,18 @@
   "bugs": {
     "url": "https://github.com/stilva/glsl/issues"
   },
-  "homepage": "https://github.com/stilva/glsl#readme"
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run build"
+    }
+  },
+  "homepage": "https://github.com/stilva/glsl#readme",
+  "devDependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.2.3",
+    "husky": "^1.3.1",
+    "rollup": "^1.0.2",
+    "rollup-plugin-babel": "^4.2.0",
+    "rollup-plugin-node-resolve": "^4.0.0"
+  }
 }
