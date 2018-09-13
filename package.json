@@ -1,0 +1,19 @@
+{
+  "name": "glsl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stilva/glsl.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stilva/glsl/issues"
+  },
+  "homepage": "https://github.com/stilva/glsl#readme"
+}
