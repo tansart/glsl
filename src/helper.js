@@ -6,37 +6,48 @@ const FLOAT_VARIABLES = [
 ];
 
 export function variableHelper(name, values) {
-	const valueArr = getArray(values);
+	const valueArr = asArray(values);
 	const index = valueArr.length - 1;
 	const command = FLOAT_VARIABLES[index];
 
 	return {
 		name,
 		linked: false,
-		value: normaliseFloat(valueArr),
+		value: valueArr,
 		type: getType(valueArr),
 		location: `${name}Location`,
 		locationType: command
 	}
 }
 
-export function getArray(value) {
-	return Array.isArray(value) ? value: [value];
-}
+export function textureHelper(name, index, texture) {
 
-function normaliseFloat(arr) {
-	return arr.map(n => parseFloat(n));
-}
+	const pImage = (typeof texture == 'string'
+			? pGetImage(texture)
+			: Promise.resolve(texture));
 
-function getType(values, hasFloat) {
-	switch(values.length) {
-		case 1:
-			return 'float';
-		case 2:
-			return 'vec2';
-		case 3:
-			return 'vec3';
-		case 4:
-			return 'vec4';
+	return {
+		name,
+		index,
+		texture: pImage,
+		linked: false,
 	}
+}
+
+export function asArray(value) {
+	return Array.isArray(value) ? value : [value];
+}
+
+export function pGetImage(src) {
+	const img = new Image();
+	img.crossOrigin = "Anonymous";
+
+	return new Promise(resolve => {
+		img.addEventListener("load", _ => resolve(img));
+		img.src = src
+	});
+}
+
+function getType(values) {
+	return values.length == 1 ? 'float' : `vec${values.length}`;
 }

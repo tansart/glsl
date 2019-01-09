@@ -1,19 +1,27 @@
 import {getCanvas} from './Canvas';
-import {variableHelper} from './helper';
+import {variableHelper, pGetImage, textureHelper} from './helper';
 
-export class GLSL {
+const PRECISION = ['lowp', 'mediump', 'highp'];
+
+export default class GLSL {
 	get canvas() {
 		return this._canvas.node;
 	}
 
 	constructor(canvasData, options) {
-		this._canvas = new getCanvas(canvasData, options);
-		this._gl = this._canvas.context;
+		this._options = Object.assign({
+			antialias: false,
+			precision: 1
+		}, options);
 
+		this._canvas = new getCanvas(canvasData, this._options);
+
+		this._gl = this._canvas.context;
 		this._gl.viewport(0, 0, this._gl.drawingBufferWidth, this._gl.drawingBufferHeight);
 
 		this._locations = {};
 		this._variables = {};
+		this._textures = {};
 
 		this._vertex = `attribute vec2 a_position;
 		void main() {
@@ -31,7 +39,16 @@ export class GLSL {
 			throw new Error(`Variable ${name} has already been added to this instance.`);
 		}
 
-		this._variables[name] = variableHelper.call(this, name, values);
+		this._variables[name] = variableHelper(name, values);
+	}
+
+	addTexture(name, imageData) {
+		if (this._textures.hasOwnProperty(name)) {
+			throw new Error(`Texture ${name} has already been added to this instance.`);
+		}
+
+		const index = Object.keys(this._textures).length;
+		this._textures[name] = textureHelper(name, index, imageData);
 	}
 
 	fragment(template, ...args) {
@@ -41,14 +58,18 @@ export class GLSL {
 			throw new Error('The fragment shader provided has an invalid amount of arguments');
 		}
 
-		this._fragment = `precision highp float;
+		this._fragment = `precision ${PRECISION[this._options['precision']]} float;
+		
 		${stringifyVariables(this._variables)}
+		
+		${stringifyTextures(this._textures)}
 		
 		${tmpl.reduce((acc, curr, index) => {
 			return `${acc}${args[index]}${curr}`;
 		})}`;
 
-		initProgram.call(this);
+		this._program = setupProgram(this._gl, this._vertex, this._fragment);
+
 		Object.keys(this._variables).forEach(key => {
 			if (this._variables[key].linked) {
 				return;
@@ -62,6 +83,19 @@ export class GLSL {
 
 			this._variables[key].linked = true;
 		});
+
+		Object.keys(this._textures).forEach(key => {
+			if (this._textures[key].linked) {
+				return;
+			}
+
+			const {name, index, texture} = this._textures[key];
+
+			const textureObject = createTexture(this._gl, this._program, index + 1, name);
+			texture.then(img => {
+				textureObject.apply(img);
+			});
+		});
 	}
 
 	render() {
@@ -74,30 +108,11 @@ export class GLSL {
 		requestAnimationFrame(_ => this.render());
 	}
 
-	tick() {
-
-	}
-
 	kill() {
-
+		this._gl.getExtension('WEBGL_lose_context').loseContext();
+		this._gl.useProgram(null);
+		this._gl.deleteProgram(this._program);
 	}
-}
-
-function initProgram() {
-	const program = setupProgram(this._gl, this._vertex, this._fragment);
-
-	const positionLocation = this._gl.getAttribLocation(program, "a_position");
-	this._gl.enableVertexAttribArray(positionLocation);
-	this._gl.vertexAttribPointer(positionLocation, 2, this._gl.FLOAT, false, 0, 0);
-
-	this._program = program;
-}
-
-function stringifyVariables(variables) {
-	return Object.keys(variables).reduce((acc, key) => {
-		return `${acc}
-		uniform ${variables[key].type} ${key};`;
-	}, '');
 }
 
 function setupProgram(gl, vertex, fragment) {
@@ -129,5 +144,50 @@ function setupProgram(gl, vertex, fragment) {
 	gl.linkProgram(program);
 	gl.useProgram(program);
 
+	const positionLocation = gl.getAttribLocation(program, "a_position");
+	gl.enableVertexAttribArray(positionLocation);
+	gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
 	return program;
+}
+
+function createTexture(gl, program, index, name) {
+	const texture = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+	gl.uniform1i(gl.getUniformLocation(program, name), index);
+
+	const textureID = gl[`TEXTURE${index}`];
+
+	gl.activeTexture(textureID);
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, new ImageData(2, 2));
+
+	return {
+		apply: (source) => {
+			gl.activeTexture(textureID);
+			gl.bindTexture(gl.TEXTURE_2D, texture);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+		},
+		texture
+	};
+}
+
+function stringifyVariables(variables) {
+	return Object.keys(variables).reduce((acc, key) => {
+		return `${acc}
+		uniform ${variables[key].type} ${key};`;
+	}, '');
+}
+
+function stringifyTextures(textures) {
+	return Object.keys(textures).reduce((acc, key) => {
+		return `${acc}
+		uniform sampler2D ${key};`;
+	}, '');
 }

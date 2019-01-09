@@ -43,12 +43,12 @@ new GLSL([100, 100], defaultOptions)
 
 The following assumes `glsl` to be an instance of `GLSL`
 ```javascript
-glsl.addTexture('http://url-to-texture');
+glsl.addTexture('u_image', 'http://url-to-texture');
 ```
 ```javascript
 const img = new Image();
 img.onLoad = _ => {
-  glsl.addTexture(img);
+  glsl.addTexture('u_image', img);
 };
 ```
 

@@ -23,6 +23,8 @@ export function getCanvas(canvasData, options) {
 		const node = document.createElement('canvas');
 		return new Canvas(node, options);
 	}
+
+	throw new Error(`getCanvas expects an HTMLCanvasElement or an Array [width, height]`);
 }
 
 class Canvas {
