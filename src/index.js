@@ -40,6 +40,13 @@ export default class GLSL {
 		}
 
 		this._variables[name] = variableHelper(name, values);
+
+		return value => {
+			const {location, locationType} = this._variables[name];
+
+			this._variables[name].value = value;
+			this._gl[locationType](this._locations[location], this._variables[name].value);
+		};
 	}
 
 	addTexture(name, imageData) {
@@ -98,7 +105,7 @@ export default class GLSL {
 		});
 	}
 
-	render() {
+	render(renderHook) {
 		this._gl.clear(this._gl.COLOR_BUFFER_BIT);
 		this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
 
