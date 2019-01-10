@@ -11,7 +11,7 @@ glsl.fragment`void main() {
   vec2 uv = gl_FragCoord.xy/u_resolution.xy;
   vec3 col = 0.5 + 0.5 * cos(u_time + uv.xyx + u_delta);
   gl_FragColor = vec4(col,1.0);
-}`
+}`;
 glsl.render();
 ```
 
@@ -27,21 +27,51 @@ The second argument of GLSL accepts a set of options.
 ```javascript
 const defaultOptions = {
   antialias: false, // boolean
-  precision: 1 // 0: low, 1: medium, 2: high
+  precision: 1 // 0: lowp, 1: mediump, 2: highp
 };
 
 new GLSL([100, 100], defaultOptions)
 ```
 
-### Variables provided by GLSL
+### Variables
 
+#### Variables provided by GLSL
 `u_time` shows the elapsed time in s.
 
 `u_resolution` is the resolution based on the canvas' size.
 
-### Texture
+#### Custom Variables
 
-The following assumes `glsl` to be an instance of `GLSL`
+```javascript
+glsl.addVariable('u_background', [1.,0.,0.,1.]);
+
+glsl.fragment`void main() {
+  gl_FragColor = u_background;
+}`;
+
+glsl.render();
+```
+
+#### Dynamically updating variables
+`glsl.addVariable` returns a function, which let's you update the value.
+
+**Attention:** currently, `updateVariable()` doesn't check that the new variable matches the initial variable.
+
+```javascript
+const updateVarOne = glsl.addVariable('u_var1', [1., 1., 1., 1.]);
+
+glsl.fragment`void main() {
+  gl_FragColor = u_var1;
+}`;
+
+setInterval(_ => {
+  updateVarOne([Math.random(), Math.random(), Math.random(), 1.]);
+}, 1000);
+
+glsl.render();
+```
+
+### Texture
 ```javascript
 glsl.addTexture('u_image', 'http://url-to-texture');
 ```
@@ -50,6 +80,17 @@ const img = new Image();
 img.onLoad = _ => {
   glsl.addTexture('u_image', img);
 };
+```
+
+in either case you can then use the texture in your fragment shader as below:
+
+```javascript
+glsl.fragment`void main() {
+  vec2 uv = gl_FragCoord.xy/u_resolution.xy;
+  gl_FragColor = texture2D(u_image, vec2(uv.x, 1. - uv.y - 1.0));
+}`;
+
+glsl.render();
 ```
 
 ### Kill the instance
