@@ -14,7 +14,7 @@ export default class GLSL {
 			precision: 1
 		}, options);
 
-		this._canvas = new getCanvas(canvasData, this._options);
+		this._canvas = getCanvas(canvasData, this._options);
 
 		this._gl = this._canvas.context;
 		this._gl.viewport(0, 0, this._gl.drawingBufferWidth, this._gl.drawingBufferHeight);
@@ -105,7 +105,7 @@ export default class GLSL {
 		});
 	}
 
-	render(renderHook) {
+	render() {
 		this._gl.clear(this._gl.COLOR_BUFFER_BIT);
 		this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
 
