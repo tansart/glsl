@@ -1,5 +1,8 @@
 {
   "presets": [
-    ["@babel/env", {"modules": false}]
+    ["@babel/env", {
+      "modules": false,
+      "targets": "last 2 years"
+    }]
   ]
 }
