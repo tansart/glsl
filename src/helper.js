@@ -21,17 +21,22 @@ export function variableHelper(name, values) {
 }
 
 export function textureHelper(name, index, texture) {
+  let pImage = null;
 
-	const pImage = (typeof texture == 'string'
-			? pGetImage(texture)
-			: Promise.resolve(texture));
+  if (typeof texture == 'string') {
+    pImage = pGetImage(texture);
+  } else if(texture instanceof Blob) {
+    pImage = pGetBlob(texture).then(pGetImage);
+  } else {
+    pImage = Promise.resolve(texture);
+  }
 
-	return {
-		name,
-		index,
-		texture: pImage,
-		linked: false,
-	}
+  return {
+    name,
+    index,
+    texture: pImage,
+    linked: false,
+  }
 }
 
 export function asArray(value) {
@@ -46,6 +51,16 @@ export function pGetImage(src) {
 		img.addEventListener("load", _ => resolve(img));
 		img.src = src
 	});
+}
+
+function pGetBlob(blob) {
+  const reader = new FileReader();
+  return new Promise(resolve => {
+    reader.addEventListener('load', e => {
+      resolve(e.target.result);
+    });
+    reader.readAsDataURL(blob);
+  });
 }
 
 function getType(values) {
