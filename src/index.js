@@ -1,5 +1,5 @@
 import {getCanvas} from './Canvas';
-import {variableHelper, pGetImage, textureHelper} from './helper';
+import {variableHelper, textureHelper} from './helper';
 
 const PRECISION = ['lowp', 'mediump', 'highp'];
 
@@ -56,6 +56,10 @@ export default class GLSL {
 
     const index = Object.keys(this._textures).length;
     this._textures[name] = textureHelper(name, index, imageData);
+
+    return value => {
+      this._textures[name].apply(value);
+    }
   }
 
   fragment(template, ...args) {
@@ -96,10 +100,12 @@ export default class GLSL {
         return;
       }
 
-      const {name, index, texture} = this._textures[key];
+      const {name, index, pSource} = this._textures[key];
+      this._textures[key].linked = true;
 
       const textureObject = createTexture(this._gl, this._program, index + 1, name);
-      texture.then(img => {
+      this._textures.apply = textureObject.apply;
+      pSource.then(img => {
         textureObject.apply(img);
       });
     });
@@ -144,6 +150,7 @@ function setupProgram(gl, vertex, fragment) {
   const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
   gl.shaderSource(fragmentShader, fragment);
   gl.compileShader(fragmentShader);
+  // Add debug info:: gl.getShaderInfoLog(fragmentShader);
 
   const program = gl.createProgram();
   gl.attachShader(program, vertexShader);
