@@ -32,9 +32,10 @@ export function textureHelper(name, index, texture) {
   }
 
   return {
+    apply: noop,
     name,
     index,
-    texture: pImage,
+    pSource: pImage,
     linked: false,
   }
 }
@@ -66,3 +67,5 @@ function pGetBlob(blob) {
 function getType(values) {
 	return values.length == 1 ? 'float' : `vec${values.length}`;
 }
+
+function noop() {}
