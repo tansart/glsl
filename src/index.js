@@ -36,12 +36,12 @@ export default class GLSL {
     this.addVariable('u_resolution', [this._canvas.width, this._canvas.height]);
   }
 
-  addVariable(name, values) {
+  addVariable(name, values, arrayType = null) {
     if (this._variables.hasOwnProperty(name)) {
       throw new Error(`Variable ${name} has already been added to this instance.`);
     }
 
-    this._variables[name] = variableHelper(name, values);
+    this._variables[name] = variableHelper(name, values, arrayType);
 
     return value => {
       const {location, locationType} = this._variables[name];
@@ -151,11 +151,16 @@ function setupProgram(gl, vertex, fragment) {
   const vertexShader = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(vertexShader, vertex);
   gl.compileShader(vertexShader);
+  if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+    throw new Error(gl.getShaderInfoLog(vertexShader));
+  }
 
   const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
   gl.shaderSource(fragmentShader, fragment);
   gl.compileShader(fragmentShader);
-  // Add debug info:: gl.getShaderInfoLog(fragmentShader);
+  if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+    throw new Error(gl.getShaderInfoLog(fragmentShader));
+  }
 
   const program = gl.createProgram();
   gl.attachShader(program, vertexShader);

@@ -5,9 +5,9 @@ const FLOAT_VARIABLES = {
   'vec4':'uniform4fv'
 };
 
-export function variableHelper(name, values) {
+export function variableHelper(name, values, arrayType) {
   const valueArr = asArray(values);
-  const [type, size] = getType(valueArr);
+  const [type, size] = getType(valueArr, arrayType);
   const command = FLOAT_VARIABLES[type];
   return {
     name,
@@ -64,12 +64,9 @@ function pGetBlob(blob) {
   });
 }
 
-function getType(values) {
-  if(Array.isArray(values[0])) {
-    if(values[0].length === 1) {
-      return [`float`, `[${values.length}]`];
-    }
-    return [`vec${values[0].length}`, `[${values.length}]`];
+function getType(values, arrayType) {
+  if(arrayType) {
+    return [arrayType, `[${values.length}]`];
   } else if(values.length === 1) {
     return ['float', ''];
   }
