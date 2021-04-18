@@ -48,7 +48,7 @@ class Canvas {
     this._canvas = canvas;
 
     try {
-      this._context = canvas.getContext('webgl', {antialias});
+      this._context = canvas.getContext('webgl2', {antialias});
     } catch (e) {
       throw new Error(`Error while getting the context. ${e.message}`);
     }

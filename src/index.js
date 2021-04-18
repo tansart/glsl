@@ -23,7 +23,9 @@ export default class GLSL {
     this._variables = {};
     this._textures = {};
 
-    this._vertex = `attribute vec2 a_position;
+    this._vertex = `#version 300 es
+    in vec2 a_position;
+
 		void main() {
 			gl_Position = vec4(a_position, 0, 1);
 		}`;
@@ -69,7 +71,10 @@ export default class GLSL {
       throw new Error('The fragment shader provided has an invalid amount of arguments');
     }
 
-    this._fragment = `precision ${PRECISION[this._options['precision']]} float;
+    this._fragment = `#version 300 es
+    precision ${PRECISION[this._options['precision']]} float;
+
+    out vec4 fragColor;
 		
 		${stringifyVariables(this._variables)}
 		
