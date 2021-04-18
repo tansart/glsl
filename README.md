@@ -6,12 +6,15 @@
 
 ```javascript
 const glsl = new GLSL(canvas);
+
 glsl.addVariable('u_delta', [0, 2, 4]);
+
 glsl.fragment`void main() {
   vec2 uv = gl_FragCoord.xy/u_resolution.xy;
   vec3 col = 0.5 + 0.5 * cos(u_time + uv.xyx + u_delta);
   gl_FragColor = vec4(col,1.0);
 }`;
+
 glsl.render();
 ```
 
@@ -71,7 +74,9 @@ setInterval(_ => {
 glsl.render();
 ```
 
-### Texture
+### Textures
+
+#### Image based textures
 ```javascript
 glsl.addTexture('u_image', 'http://url-to-texture');
 ```

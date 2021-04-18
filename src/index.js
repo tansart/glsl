@@ -195,7 +195,7 @@ function createTexture(gl, program, index, name) {
 function stringifyVariables(variables) {
   return Object.keys(variables).reduce((acc, key) => {
     return `${acc}
-		uniform ${variables[key].type} ${key};`;
+		uniform ${variables[key].type} ${key}${variables[key].size};`;
   }, '');
 }
 

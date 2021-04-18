@@ -1,27 +1,27 @@
-const FLOAT_VARIABLES = [
-	'uniform1f',
-	'uniform2fv',
-	'uniform3fv',
-	'uniform4fv'
-];
+const FLOAT_VARIABLES = {
+  'float':'uniform1f',
+  'vec2':'uniform2fv',
+  'vec3':'uniform3fv',
+  'vec4':'uniform4fv'
+};
 
 export function variableHelper(name, values) {
-	const valueArr = asArray(values);
-	const index = valueArr.length - 1;
-	const command = FLOAT_VARIABLES[index];
-
-	return {
-		name,
-		linked: false,
-		value: valueArr,
-		type: getType(valueArr),
-		location: `${name}Location`,
-		locationType: command
-	}
+  const valueArr = asArray(values);
+  const [type, size] = getType(valueArr);
+  const command = FLOAT_VARIABLES[type];
+  return {
+    name,
+    linked: false,
+    value: valueArr,
+    type,
+    size,
+    location: `${name}Location`,
+    locationType: command
+  }
 }
 
 export function textureHelper(name, index, texture) {
-  let pImage = null;
+  let pImage;
 
   if (typeof texture == 'string') {
     pImage = pGetImage(texture);
@@ -65,7 +65,16 @@ function pGetBlob(blob) {
 }
 
 function getType(values) {
-	return values.length == 1 ? 'float' : `vec${values.length}`;
+  if(Array.isArray(values[0])) {
+    if(values[0].length === 1) {
+      return [`float`, `[${values.length}]`];
+    }
+    return [`vec${values[0].length}`, `[${values.length}]`];
+  } else if(values.length === 1) {
+    return ['float', ''];
+  }
+
+  return [`vec${values.length}`, ''];
 }
 
 function noop() {}
