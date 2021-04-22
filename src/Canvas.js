@@ -5,9 +5,9 @@ export function getCanvas(canvasData, options) {
 
   if (canvasData instanceof HTMLCanvasElement) {
     const options = {
-      width: canvasData.width,
+      ..._options,
       height: canvasData.height,
-      antialias: _options.antialias
+      width: canvasData.width
     };
 
     return new Canvas(canvasData, options);
@@ -15,9 +15,9 @@ export function getCanvas(canvasData, options) {
 
   if (Array.isArray(canvasData)) {
     const options = {
-      width: canvasData[0],
+      ..._options,
       height: canvasData[1],
-      antialias: _options.antialias
+      width: canvasData[0]
     };
 
     const node = document.createElement('canvas');
@@ -44,11 +44,11 @@ class Canvas {
     return this._canvas.width;
   }
 
-  constructor(canvas, {width, height, antialias}) {
+  constructor(canvas, {antialias, height, width, webglVersion}) {
     this._canvas = canvas;
 
     try {
-      this._context = canvas.getContext('webgl2', {antialias});
+      this._context = canvas.getContext(webglVersion, {antialias});
     } catch (e) {
       throw new Error(`Error while getting the context. ${e.message}`);
     }

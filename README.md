@@ -9,10 +9,12 @@ const glsl = new GLSL(canvas);
 
 glsl.addVariable('u_delta', [0, 2, 4]);
 
-glsl.fragment`void main() {
+glsl.fragment`
+out vec4 fragColor;
+void main() {
   vec2 uv = gl_FragCoord.xy/u_resolution.xy;
   vec3 col = 0.5 + 0.5 * cos(u_time + uv.xyx + u_delta);
-  gl_FragColor = vec4(col,1.0);
+  fragColor = vec4(col,1.0);
 }`;
 
 glsl.render();
@@ -30,7 +32,8 @@ The second argument of GLSL accepts a set of options.
 ```javascript
 const defaultOptions = {
   antialias: false, // boolean
-  precision: 1 // 0: lowp, 1: mediump, 2: highp
+  precision: 1, // 0: lowp, 1: mediump, 2: highp
+  webglVersion: 'webgl2' // 'webgl', 'webgl2'
 };
 
 new GLSL([100, 100], defaultOptions)

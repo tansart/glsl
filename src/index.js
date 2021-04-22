@@ -1,18 +1,32 @@
 import {getCanvas} from './Canvas';
 import {variableHelper, textureHelper} from './helper';
 
+const WEBGL2 = 'webgl2';
 const PRECISION = ['lowp', 'mediump', 'highp'];
+const VALID_WEBGL_VERSIONS = new Set(['webgl', WEBGL2]);
 
 export default class GLSL {
   get canvas() {
     return this._canvas.node;
   }
 
+  get isWebgl2() {
+    return this._options.webglVersion === WEBGL2;
+  }
+
   constructor(canvasData, options) {
-    this._options = Object.assign({
+    this._destroyed = false;
+
+    this._options = {
       antialias: false,
-      precision: 1
-    }, options);
+      precision: 1,
+      webglVersion: WEBGL2,
+      ...options
+    };
+
+    if(!VALID_WEBGL_VERSIONS.has(this._options.webglVersion)) {
+      throw new Error(`Constructor option is invalid: webglVersion needs to be either ${Array.from(VALID_WEBGL_VERSIONS).join(' or ')}`)
+    }
 
     this._canvas = getCanvas(canvasData, this._options);
 
@@ -23,8 +37,8 @@ export default class GLSL {
     this._variables = {};
     this._textures = {};
 
-    this._vertex = `#version 300 es
-    in vec2 a_position;
+    this._vertex = `${this.isWebgl2 ? `#version 300 es
+    in vec2 a_position;`: `attribute vec2 a_position;`}
 
 		void main() {
 			gl_Position = vec4(a_position, 0, 1);
@@ -71,10 +85,8 @@ export default class GLSL {
       throw new Error('The fragment shader provided has an invalid amount of arguments');
     }
 
-    this._fragment = `#version 300 es
+    this._fragment = `${this.isWebgl2 ? `#version 300 es`: ''}
     precision ${PRECISION[this._options['precision']]} float;
-
-    out vec4 fragColor;
 		
 		${stringifyVariables(this._variables)}
 		
@@ -117,6 +129,10 @@ export default class GLSL {
   }
 
   render() {
+    if(this._destroyed) {
+      return;
+    }
+
     this._gl.clear(this._gl.COLOR_BUFFER_BIT);
     this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
 
@@ -127,6 +143,7 @@ export default class GLSL {
   }
 
   kill() {
+    this._destroyed = true;
     this._gl.getExtension('WEBGL_lose_context').loseContext();
     this._gl.useProgram(null);
     this._gl.deleteProgram(this._program);
