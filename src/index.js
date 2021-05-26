@@ -47,7 +47,7 @@ export default class GLSL {
     this._initTime = Date.now();
 
     this.addVariable('u_time', 0);
-    this.addVariable('u_resolution', [this._canvas.width, this._canvas.height]);
+    this.resize = this.addVariable('u_resolution', [this._canvas.width, this._canvas.height]);
   }
 
   addVariable(name, values, arrayType = null) {
